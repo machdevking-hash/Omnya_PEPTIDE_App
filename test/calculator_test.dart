@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/domain/reconstitution_calculator.dart';
+import 'package:omnya/domain/reconstitution_calculator.dart';
 
 void main() {
   test('10 mg vial, 2 mL water, 2 mg dose', () {

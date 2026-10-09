@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:peptide_app/data/models/circle_data.dart';
-import 'package:peptide_app/data/models/compound.dart';
-import 'package:peptide_app/data/models/daily_check_in.dart';
-import 'package:peptide_app/data/models/dose_log.dart';
-import 'package:peptide_app/data/models/user_profile.dart';
-import 'package:peptide_app/data/repositories/protocol_repository.dart';
-import 'package:peptide_app/data/services/cloud_service.dart';
-import 'package:peptide_app/data/services/local_storage_service.dart';
+import 'package:omnya/data/models/circle_data.dart';
+import 'package:omnya/data/models/compound.dart';
+import 'package:omnya/data/models/daily_check_in.dart';
+import 'package:omnya/data/models/dose_log.dart';
+import 'package:omnya/data/models/user_profile.dart';
+import 'package:omnya/data/repositories/protocol_repository.dart';
+import 'package:omnya/data/services/cloud_service.dart';
+import 'package:omnya/data/services/local_storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// In-memory stand-in for Supabase. Flip [offline] to simulate no network.

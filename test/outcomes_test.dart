@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/data/models/compound.dart';
-import 'package:peptide_app/data/models/dose_log.dart';
-import 'package:peptide_app/core/constants/compound_directory.dart';
-import 'package:peptide_app/data/models/daily_check_in.dart';
-import 'package:peptide_app/data/models/progress_photo.dart';
-import 'package:peptide_app/domain/outcomes.dart';
-import 'package:peptide_app/domain/schedule.dart';
+import 'package:omnya/data/models/compound.dart';
+import 'package:omnya/data/models/dose_log.dart';
+import 'package:omnya/core/constants/compound_directory.dart';
+import 'package:omnya/data/models/daily_check_in.dart';
+import 'package:omnya/data/models/progress_photo.dart';
+import 'package:omnya/domain/outcomes.dart';
+import 'package:omnya/domain/schedule.dart';
 import 'insights_test.dart' show reta, log, now;
 
 DailyCheckIn day(DateTime at, {double? lb, double? waist, List<String> effects = const []}) => DailyCheckIn(

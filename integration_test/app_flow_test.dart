@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
-import 'package:peptide_app/core/theme/omnya_theme.dart';
-import 'package:peptide_app/core/widgets/omnya_controls.dart';
-import 'package:peptide_app/data/services/subscription_service.dart';
-import 'package:peptide_app/ui/navigation/main_shell.dart';
+import 'package:omnya/core/theme/omnya_theme.dart';
+import 'package:omnya/core/widgets/omnya_controls.dart';
+import 'package:omnya/data/services/subscription_service.dart';
+import 'package:omnya/ui/navigation/main_shell.dart';
 import '../test/fakes.dart';
 
 /// Runs on a device against an in-memory cloud, so it never writes to production.

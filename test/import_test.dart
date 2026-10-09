@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/data/services/shotsy_import.dart';
+import 'package:omnya/data/services/shotsy_import.dart';
 import 'fakes.dart';
 
 const csv = '''Date,Medication,Dose,Injection Site,Weight (lbs),Notes

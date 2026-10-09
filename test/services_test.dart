@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/data/models/user_profile.dart';
-import 'package:peptide_app/data/services/doctor_report.dart';
-import 'package:peptide_app/data/services/reminder_service.dart';
+import 'package:omnya/data/models/user_profile.dart';
+import 'package:omnya/data/services/doctor_report.dart';
+import 'package:omnya/data/services/reminder_service.dart';
 import 'fakes.dart';
 
 void main() {

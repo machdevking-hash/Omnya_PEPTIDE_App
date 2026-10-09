@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/data/models/user_profile.dart';
-import 'package:peptide_app/data/services/cloud_service.dart';
-import 'package:peptide_app/domain/insights.dart';
+import 'package:omnya/data/models/user_profile.dart';
+import 'package:omnya/data/services/cloud_service.dart';
+import 'package:omnya/domain/insights.dart';
 import 'fakes.dart';
 
 void main() {

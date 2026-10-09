@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peptide_app/core/constants/compound_directory.dart';
-import 'package:peptide_app/data/models/compound.dart';
-import 'package:peptide_app/data/models/daily_check_in.dart';
-import 'package:peptide_app/data/models/dose_log.dart';
-import 'package:peptide_app/domain/insights.dart';
-import 'package:peptide_app/domain/schedule.dart';
+import 'package:omnya/core/constants/compound_directory.dart';
+import 'package:omnya/data/models/compound.dart';
+import 'package:omnya/data/models/daily_check_in.dart';
+import 'package:omnya/data/models/dose_log.dart';
+import 'package:omnya/domain/insights.dart';
+import 'package:omnya/domain/schedule.dart';
 
 final now = DateTime(2026, 9, 30, 9); // a Wednesday
 
