@@ -57,7 +57,7 @@ The Supabase URL and publishable key are passed as Dart compile-time defines. Th
   ```
 
   Use the same `--dart-define` flags with `flutter build appbundle` for a Play Store bundle. Without `key.properties`, release builds are signed with the debug key, which the Play Store rejects. Builds include arm64 only.
-- **iOS**: set your team in Xcode. In the Apple Developer portal, turn on HealthKit and App Groups (`group.com.omnya.peptide`) for `com.omnya.peptide.peptideApp`, and App Groups for `com.omnya.peptide.peptideApp.OmnyaWidget`. Then run `flutter build ipa`.
+- **iOS**: set your team in Xcode. In the Apple Developer portal, turn on HealthKit and App Groups (`group.com.omnya.omnya`) for `com.omnya.omnya`, and App Groups for `com.omnya.omnya.OmnyaWidget`. Then run `flutter build ipa`.
 
 ## Checks
 

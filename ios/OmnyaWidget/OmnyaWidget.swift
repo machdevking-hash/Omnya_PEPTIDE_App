@@ -26,7 +26,7 @@ struct Entry: TimelineEntry {
 
 struct Provider: TimelineProvider {
   static func load() -> WidgetData {
-    guard let json = UserDefaults(suiteName: "group.com.omnya.peptide")?.string(forKey: "widget"),
+    guard let json = UserDefaults(suiteName: "group.com.omnya.omnya")?.string(forKey: "widget"),
       let data = json.data(using: .utf8),
       let decoded = try? JSONDecoder().decode(WidgetData.self, from: data)
     else { return WidgetData() }

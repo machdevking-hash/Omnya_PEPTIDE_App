@@ -14,7 +14,7 @@ val keyProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.omnya.peptide.peptide_app"
+    namespace = "com.omnya.omnya"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.omnya.peptide.peptide_app"
+        applicationId = "com.omnya.omnya"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

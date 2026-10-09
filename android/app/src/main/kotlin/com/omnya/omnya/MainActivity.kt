@@ -1,4 +1,4 @@
-package com.omnya.peptide.peptide_app
+package com.omnya.omnya
 
 import io.flutter.embedding.android.FlutterActivity
 

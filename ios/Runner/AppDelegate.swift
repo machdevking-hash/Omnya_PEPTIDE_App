@@ -27,7 +27,7 @@ import WidgetKit
 /// Everything here runs on the phone. Nothing is sent anywhere.
 enum OmnyaNative {
   static let health = HKHealthStore()
-  static let appGroup = "group.com.omnya.peptide"
+  static let appGroup = "group.com.omnya.omnya"
 
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     let args = call.arguments as? [String: Any] ?? [:]
