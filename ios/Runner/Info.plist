@@ -64,6 +64,8 @@
 	</array>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Read your latest weight from Apple Health so you don't have to type it.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Save your weight entries to Apple Health so your data stays in sync.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
