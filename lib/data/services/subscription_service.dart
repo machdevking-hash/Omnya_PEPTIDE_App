@@ -8,7 +8,7 @@ enum PurchaseOutcome { success, cancelled, failed }
 
 /// Manages RevenueCat StoreKit subscriptions and Pro entitlements.
 class SubscriptionService extends ChangeNotifier {
-  static const entitlementPro = 'pro';
+  static const entitlementPro = 'omnya_pro';
 
   // Passed with --dart-define=REVENUECAT_APPLE_API_KEY=appl_... on release builds.
   static const _appleApiKey = String.fromEnvironment('REVENUECAT_APPLE_API_KEY');
