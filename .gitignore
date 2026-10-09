@@ -30,5 +30,9 @@ app.*.map.json
 # Local secrets and tool output
 .env
 .env.*
+!.env.example
 .argent/
 *.log
+
+# Product spec stays local, wherever it ends up
+Peptide-App-Product-Spec*.pdf
