@@ -28,6 +28,7 @@ create table public.profiles (
   day_90_goal text,
   photo_tracking_type text,
   sunday_photo_prompt boolean not null default true,
+  protein_target_g smallint check (protein_target_g between 20 and 400),
   updated_at timestamptz not null default now()
 );
 
@@ -80,6 +81,8 @@ create table public.check_ins (
   sleep_hours numeric(3, 1) check (sleep_hours between 0 and 24),
   pain smallint check (pain between 0 and 10),
   side_effects text[] not null default '{}',
+  protein_g smallint check (protein_g between 0 and 600),
+  strength smallint check (strength between 1 and 5),
   notes text not null default '' check (char_length(notes) <= 500),
   period_started boolean not null default false,
   primary key (user_id, id)

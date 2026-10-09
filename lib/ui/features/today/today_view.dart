@@ -34,11 +34,12 @@ class TodayView extends StatelessWidget {
   Widget build(BuildContext context) {
     final repo = context.watch<ProtocolRepository>();
     final now = DateTime.now();
+    // Cycle-aware insights are Pro (spec page 8).
     final insight = todayInsight(
       compounds: repo.compounds,
       logs: repo.doseLogs,
       checkIns: repo.checkIns,
-      hasCycle: repo.profile?.hasCycle ?? false,
+      hasCycle: (repo.profile?.hasCycle ?? false) && context.watch<SubscriptionService>().isPro,
       now: now,
     );
 
@@ -293,6 +294,8 @@ class _CheckInCardState extends State<_CheckInCard> {
   double? _waist;
   double? _sleep;
   int? _pain;
+  int? _protein;
+  int? _strength;
   final _notes = TextEditingController();
   Set<String> _effects = {};
 
@@ -315,11 +318,14 @@ class _CheckInCardState extends State<_CheckInCard> {
       _sleep = existing.sleepHours;
       _notes.text = existing.notes;
       _pain = existing.pain;
+      _protein = existing.proteinG;
+      _strength = existing.strength;
       _effects = {...existing.sideEffects};
       _more =
           existing.waistIn != null ||
           existing.sleepHours != null ||
           existing.pain != null ||
+          existing.proteinG != null ||
           existing.sideEffects.isNotEmpty ||
           existing.notes.isNotEmpty;
     });
@@ -346,6 +352,8 @@ class _CheckInCardState extends State<_CheckInCard> {
       sleepHours: _sleep,
       pain: _pain,
       sideEffects: _effects.toList(),
+      proteinG: _protein,
+      strength: _strength,
       notes: _notes.text,
       periodStarted: _periodStarted,
     );
@@ -357,6 +365,11 @@ class _CheckInCardState extends State<_CheckInCard> {
     final today = widget.repo.checkInOn(widget.now);
     final hasCycle = widget.repo.profile?.hasCycle ?? false;
     final photoThisWeek = widget.repo.photoInWeekOf(widget.now) != null;
+    // Strength is a weekly question: asked until it's answered this week, and on the day it was.
+    final weekStart = weekStartOf(widget.now);
+    final strengthThisWeek = widget.repo.checkIns.any(
+      (c) => c.strength != null && !c.date.isBefore(weekStart) && c.id != today?.id,
+    );
 
     return _Padded(
       OmnyaCard(
@@ -393,6 +406,8 @@ class _CheckInCardState extends State<_CheckInCard> {
                   if (today.waistIn != null) '${_num(today.waistIn)} in waist',
                   if (today.sleepHours != null) '${_num(today.sleepHours)} h sleep',
                   if (today.pain != null) 'Pain ${today.pain}',
+                  if (today.proteinG != null) '${today.proteinG} g protein',
+                  if (today.strength != null) 'Strength ${today.strength}',
                   ...today.sideEffects,
                   if (today.periodStarted) 'Period started',
                 ].join(' · '),
@@ -402,6 +417,12 @@ class _CheckInCardState extends State<_CheckInCard> {
               _Scale(label: 'Energy', value: _energy, onSelect: (v) => setState(() => _energy = v)),
               const SizedBox(height: 14),
               _Scale(label: 'Appetite', value: _appetite, onSelect: (v) => setState(() => _appetite = v)),
+              if (!strengthThisWeek) ...[
+                const SizedBox(height: 14),
+                _Scale(label: 'Strength', value: _strength, onSelect: (v) => setState(() => _strength = v)),
+                const SizedBox(height: 4),
+                Text('Once a week: how strong did workouts feel?', style: OmnyaTypography.bodySmall()),
+              ],
               const SizedBox(height: 16),
               OmnyaWheelField(
                 label: 'Weight (optional)',
@@ -429,7 +450,7 @@ class _CheckInCardState extends State<_CheckInCard> {
                   onPressed: () => setState(() => _more = true),
                   style: TextButton.styleFrom(padding: EdgeInsets.zero, foregroundColor: OmnyaColors.plum),
                   child: Text(
-                    'Add waist, sleep, pain or notes',
+                    'Add waist, sleep, protein or notes',
                     style: OmnyaTypography.label(color: OmnyaColors.plum, weight: FontWeight.w600),
                   ),
                 )
@@ -475,6 +496,17 @@ class _CheckInCardState extends State<_CheckInCard> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 14),
+                OmnyaWheelField(
+                  label: 'Protein',
+                  value: _protein?.toDouble(),
+                  min: 0,
+                  max: 300,
+                  step: 5,
+                  start: (widget.repo.profile?.proteinTargetG ?? 100).toDouble(),
+                  unit: 'g',
+                  onChanged: (v) => setState(() => _protein = v?.round()),
                 ),
                 const SizedBox(height: 14),
                 Text('Anything else', style: OmnyaTypography.label(color: OmnyaColors.charcoalMuted)),

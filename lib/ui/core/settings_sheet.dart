@@ -143,7 +143,14 @@ void showSettingsSheet(BuildContext context) {
           icon: HugeIcons.strokeRoundedPdf01,
           title: 'Doctor report',
           subtitle: 'Your last 90 days as a PDF to share',
-          onTap: () => _shareDoctorReport(sheet, repo),
+          onTap: () {
+            if (context.read<SubscriptionService>().isPro) {
+              _shareDoctorReport(sheet, repo);
+            } else {
+              Navigator.pop(sheet);
+              openPaywall(context);
+            }
+          },
         ),
         _Row(
           icon: HugeIcons.strokeRoundedFileImport,

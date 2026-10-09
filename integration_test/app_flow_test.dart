@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
 import 'package:peptide_app/core/theme/omnya_theme.dart';
 import 'package:peptide_app/core/widgets/omnya_controls.dart';
+import 'package:peptide_app/data/services/subscription_service.dart';
 import 'package:peptide_app/ui/navigation/main_shell.dart';
 import '../test/fakes.dart';
 
@@ -14,8 +15,11 @@ void main() {
   testWidgets('add a compound, log it, visit every tab', (tester) async {
     final repo = await makeRepo(FakeCloud());
     await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: repo,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: repo),
+          ChangeNotifierProvider(create: (_) => SubscriptionService(storage: repo.storage)),
+        ],
         child: MaterialApp(theme: OmnyaTheme.lightTheme, home: const MainShell()),
       ),
     );

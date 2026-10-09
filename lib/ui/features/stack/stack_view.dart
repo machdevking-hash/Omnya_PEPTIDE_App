@@ -6,7 +6,6 @@ import '../../../core/theme/omnya_colors.dart';
 import '../../../core/theme/omnya_typography.dart';
 import '../../../core/widgets/omnya_card.dart';
 import '../../../core/widgets/omnya_controls.dart';
-import '../../../core/widgets/slide_page_route.dart';
 import '../../../core/widgets/tactile_button.dart';
 import '../../../data/models/compound.dart';
 import '../../../data/models/dose_log.dart';
@@ -41,7 +40,7 @@ class StackView extends StatelessWidget {
             onPressed: () {
               final isPro = context.read<SubscriptionService>().isPro;
               if (!isPro && repo.compounds.length >= 2) {
-                Navigator.push(context, SlidePageRoute(page: const PaywallView()));
+                openPaywall(context);
               } else {
                 showCompoundEditor(context);
               }
@@ -53,7 +52,13 @@ class StackView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (costed.isNotEmpty) ...[_SpendCard(costed: costed), const SizedBox(height: 14)],
+              if (costed.isNotEmpty) ...[
+                ProGate(
+                  message: 'See your monthly spend with Pro',
+                  child: _SpendCard(costed: costed),
+                ),
+                const SizedBox(height: 14),
+              ],
               if (compounds.isEmpty)
                 OmnyaCard(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),

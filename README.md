@@ -7,12 +7,13 @@ Most trackers only record what went in. Omnya also shows what came out: weight a
 ## What the app does
 
 - **Today**: the next dose due, logged in one tap with an undo. A daily check-in for energy and appetite, with optional weight (typed or from Apple Health), waist, sleep, pain, side effects, skin notes and period start. One short note drawn from her own data, such as a vial running out or likely water weight before a period.
-- **Progress**: her first and latest weekly photos in a before and after slider, a weight chart that shades the week before each logged period, what changed since each compound started (from day 14), a weekly read of her photos measured on the phone, and a weekly report. A 9:16 progress card she can share, with an optional photo that has faces blurred.
-- **Stack**: each compound with its dose and unit, route, half-life, dose steps, schedule, next injection site, mixed-vial expiry, doses left, runout day and monthly cost. A mixing calculator converts vial strength into syringe units.
+- **Progress**: her first and latest weekly photos in a before and after slider, the first photo of each month side by side, a "toned, not frail" score from her protein target and weekly strength check-in, a weight chart that shades the week before each logged period, what changed since each compound started (from day 14), a weekly read of her photos measured on the phone, and a weekly report. A 9:16 progress card she can share, with an optional photo that has faces blurred.
+- **Stack**: each compound with its dose and unit, route, half-life, dose steps, schedule, a body map of injection sites with how long each has rested, mixed-vial expiry, doses left, runout day and monthly cost. A mixing calculator converts vial strength into syringe units.
 - **Circle**: an invite-only group of up to 5 people who see each other's dose consistency and nothing else.
 - **Reminders**: local notifications on dose days, before a runout, when a mixed vial expires, a Sunday photo prompt and the weekly report. Nothing goes through a server.
 - **Widgets**: next dose, days on protocol and runout on the home and lock screen, plus a Live Activity on shot day.
 - **Settings**: Face ID lock, a doctor report PDF of the last 90 days, and import from a Shotsy CSV export.
+- **Pro**: RevenueCat subscriptions (monthly, yearly with a trial, lifetime). Free users get up to 2 compounds, the calculator, check-ins, the widget, a watermarked progress card and the weekly report headline. The outcome engine, weekly photo read, cycle-aware insights, full weekly report, doctor PDF, monthly spend and Circles are Pro, shown blurred with a tap to the plans.
 - **Milestones**: a full-screen moment on the first dose, day 30 and day 90. Day 30 and day 90 show her own 90-day goal back to her.
 
 She enters every compound, dose and schedule herself. The app never suggests a dose.
@@ -53,11 +54,14 @@ The Supabase URL and publishable key are passed as Dart compile-time defines. Th
   ```bash
   flutter build apk --release \
     --dart-define=SUPABASE_URL=https://your-project.supabase.co \
-    --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+    --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
+    --dart-define=REVENUECAT_APPLE_API_KEY=appl_...
   ```
 
+  Without `REVENUECAT_APPLE_API_KEY`, purchases are off and the paywall says plans couldn't load.
+
   Use the same `--dart-define` flags with `flutter build appbundle` for a Play Store bundle. Without `key.properties`, release builds are signed with the debug key, which the Play Store rejects. Builds include arm64 only.
-- **iOS**: set your team in Xcode. In the Apple Developer portal, turn on HealthKit and App Groups (`group.com.omnya.omnya`) for `com.omnya.omnya`, and App Groups for `com.omnya.omnya.OmnyaWidget`. Then run `flutter build ipa`.
+- **iOS**: set your team in Xcode. In the Apple Developer portal, turn on HealthKit and App Groups (`group.com.omnya.omnya`) for `com.omnya.omnya`, and App Groups for `com.omnya.omnya.OmnyaWidget`. Then run `flutter build ipa` with the same `--dart-define` flags. In App Store Connect, create the monthly and yearly subscriptions (7-day free trial on yearly) and the lifetime non-consumable. In RevenueCat, attach them to the `pro` entitlement and to the current offering's monthly, annual and lifetime packages. The app is iPhone only, in portrait.
 
 ## Checks
 
@@ -83,4 +87,5 @@ These come from the product spec:
 - The calculator is framed as unit math and carries a disclaimer.
 - Insights describe her own data and never recommend a dose.
 - Onboarding shows a medical disclaimer.
-- Pro plans are shown, but buying is switched off until in-app purchase is connected.
+- The paywall shows App Store prices only, offers the trial only to people eligible for it, has Restore, and links to the terms and privacy policy.
+- `ios/Runner/PrivacyInfo.xcprivacy` and `ios/OmnyaWidget/PrivacyInfo.xcprivacy` declare the data backed up and the UserDefaults reasons.

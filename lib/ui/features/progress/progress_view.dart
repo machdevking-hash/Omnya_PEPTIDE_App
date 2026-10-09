@@ -17,6 +17,7 @@ import '../../../domain/insights.dart';
 import '../../../domain/outcomes.dart';
 import '../../../domain/schedule.dart';
 import '../../core/omnya_header.dart';
+import '../../onboarding/paywall_view.dart';
 import '../photo_read/weekly_photo_view.dart';
 import 'progress_card_sheet.dart';
 import 'weekly_report_view.dart';
@@ -48,6 +49,7 @@ class ProgressView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _PhotoCompare(repo: repo),
+              _MonthlyPhotos(repo: repo),
               const SizedBox(height: 16),
               _WeightCard(checkIns: repo.checkIns, hasCycle: repo.profile?.hasCycle ?? false),
               const SizedBox(height: 16),
@@ -62,6 +64,8 @@ class ProgressView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _OutcomeCard(repo: repo),
+              const SizedBox(height: 16),
+              _TonedCard(repo: repo),
               const SizedBox(height: 16),
               OmnyaCard(
                 padding: EdgeInsets.zero,
@@ -145,23 +149,26 @@ class _OutcomeCard extends StatelessWidget {
         style: OmnyaTypography.bodyMedium(),
       );
     } else {
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final o in report.compounds) ...[
-            Text(o.headline, style: OmnyaTypography.bodyLarge(color: OmnyaColors.charcoal)),
-            if (o.dosesLine.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(o.dosesLine, style: OmnyaTypography.bodyMedium()),
+      body = ProGate(
+        message: 'Your results are in. See them with Pro.',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final o in report.compounds) ...[
+              Text(o.headline, style: OmnyaTypography.bodyLarge(color: OmnyaColors.charcoal)),
+              if (o.dosesLine.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(o.dosesLine, style: OmnyaTypography.bodyMedium()),
+              ],
+              const SizedBox(height: 14),
             ],
-            const SizedBox(height: 14),
+            for (final e in report.sideEffects)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(e, style: OmnyaTypography.bodyMedium()),
+              ),
           ],
-          for (final e in report.sideEffects)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(e, style: OmnyaTypography.bodyMedium()),
-            ),
-        ],
+        ),
       );
     }
     return OmnyaCard(
@@ -172,6 +179,114 @@ class _OutcomeCard extends StatelessWidget {
           Text('What changed', style: OmnyaTypography.label(weight: FontWeight.w600)),
           const SizedBox(height: 10),
           body,
+        ],
+      ),
+    );
+  }
+}
+
+/// Spec page 6, muscle: a protein target she sets and a weekly strength check-in, read as one score.
+class _TonedCard extends StatelessWidget {
+  final ProtocolRepository repo;
+  const _TonedCard({required this.repo});
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = repo.profile;
+    final score = tonedScore(repo.checkIns, profile?.proteinTargetG, DateTime.now());
+    return OmnyaCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Toned, not frail', style: OmnyaTypography.label(weight: FontWeight.w600)),
+          const SizedBox(height: 10),
+          if (score == null)
+            Text(
+              'Set a protein target, then add protein and strength in your check-in. Your score shows here.',
+              style: OmnyaTypography.bodyMedium(),
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${score.score}', style: OmnyaTypography.statNumber(color: OmnyaColors.plum)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [for (final l in score.lines) Text(l, style: OmnyaTypography.bodyMedium())],
+                  ),
+                ),
+              ],
+            ),
+          if (profile != null) ...[
+            const SizedBox(height: 14),
+            OmnyaWheelField(
+              label: 'Daily protein target',
+              value: profile.proteinTargetG?.toDouble(),
+              min: 40,
+              max: 250,
+              step: 5,
+              start: 100,
+              unit: 'g',
+              onChanged: (v) => repo.updateSettings(profile.copyWith(proteinTargetG: () => v?.round())),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Spec page 3: the monthly side-by-side. The first photo of each month, oldest first.
+class _MonthlyPhotos extends StatelessWidget {
+  final ProtocolRepository repo;
+  const _MonthlyPhotos({required this.repo});
+
+  @override
+  Widget build(BuildContext context) {
+    final byMonth = <String, ProgressPhoto>{};
+    for (final p in repo.photos) {
+      byMonth.putIfAbsent(DateFormat('MMM y').format(p.takenAt), () => p);
+    }
+    if (byMonth.length < 2) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Month by month', style: OmnyaTypography.label(weight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: byMonth.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                final p = byMonth.values.elementAt(i);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(OmnyaRadius.control),
+                      child: Image.file(
+                        repo.photoFile(p),
+                        width: 96,
+                        height: 128,
+                        fit: BoxFit.cover,
+                        cacheWidth: 288,
+                        errorBuilder: (_, _, _) => Container(width: 96, height: 128, color: OmnyaColors.sandMuted),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(DateFormat('MMM').format(p.takenAt), style: OmnyaTypography.tag(color: OmnyaColors.taupeDark)),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

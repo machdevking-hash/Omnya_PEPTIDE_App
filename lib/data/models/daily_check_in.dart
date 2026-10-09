@@ -1,4 +1,13 @@
-const sideEffectOptions = ['Nausea', 'Headache', 'Tired', 'Bloating', 'Site reaction', 'Cycle change'];
+const sideEffectOptions = [
+  'Nausea',
+  'Headache',
+  'Tired',
+  'Bloating',
+  'Site reaction',
+  'Cycle change',
+  'Hair shedding',
+  'Skin changes',
+];
 
 class DailyCheckIn {
   final String id;
@@ -15,6 +24,11 @@ class DailyCheckIn {
   final int? pain;
   final List<String> sideEffects;
 
+  final int? proteinG;
+
+  /// 1-5, how strong workouts felt. Asked once a week.
+  final int? strength;
+
   /// Skin and hair notes, in her words.
   final String notes;
   final bool periodStarted;
@@ -29,6 +43,8 @@ class DailyCheckIn {
     this.sleepHours,
     this.pain,
     this.sideEffects = const [],
+    this.proteinG,
+    this.strength,
     this.notes = '',
     this.periodStarted = false,
   });
@@ -43,6 +59,8 @@ class DailyCheckIn {
     'sleepHours': sleepHours,
     'pain': pain,
     'sideEffects': sideEffects,
+    'proteinG': proteinG,
+    'strength': strength,
     'notes': notes,
     'periodStarted': periodStarted,
   };
@@ -57,6 +75,8 @@ class DailyCheckIn {
     sleepHours: (json['sleepHours'] as num?)?.toDouble(),
     pain: json['pain'] as int?,
     sideEffects: List<String>.from(json['sideEffects'] as List? ?? const []),
+    proteinG: json['proteinG'] as int?,
+    strength: json['strength'] as int?,
     notes: json['notes'] as String? ?? '',
     periodStarted: json['periodStarted'] as bool? ?? false,
   );

@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:peptide_app/data/models/compound.dart';
+import 'package:peptide_app/data/models/dose_log.dart';
+import 'package:peptide_app/core/constants/compound_directory.dart';
 import 'package:peptide_app/data/models/daily_check_in.dart';
+import 'package:peptide_app/data/models/progress_photo.dart';
 import 'package:peptide_app/domain/outcomes.dart';
 import 'package:peptide_app/domain/schedule.dart';
 import 'insights_test.dart' show reta, log, now;
@@ -65,5 +68,62 @@ void main() {
     );
     expect(report.changed.first, 'Weight down 2 lb on last week.');
     expect(report.due, contains("Reta's mixed vial expires Saturday."));
+  });
+
+  test('toned score: protein days at target and the latest strength rating', () {
+    DailyCheckIn fed(DateTime at, {int? g, int? strength}) =>
+        DailyCheckIn(id: at.toIso8601String(), date: at, proteinG: g, strength: strength);
+    expect(tonedScore([], 100, now), isNull);
+    expect(tonedScore([fed(now, g: 120)], null, now), isNull);
+
+    final week = [
+      for (var i = 0; i < 4; i++) fed(addDays(now, -i), g: 110),
+      fed(addDays(now, -4), g: 60),
+      fed(addDays(now, -9), g: 200), // outside the week
+      fed(addDays(now, -2), strength: 5),
+    ];
+    final s = tonedScore(week, 100, now)!;
+    expect(s.lines, ['Protein target hit on 4 of the last 7 days.', 'Workouts felt 5 of 5 this week.']);
+    expect(s.score, ((4 / 7 + 1) / 2 * 100).round());
+
+    // A strength rating older than two weeks no longer counts.
+    expect(tonedScore([fed(addDays(now, -20), strength: 4)], null, now), isNull);
+  });
+
+  test('body map: last use per site across compounds, rest window', () {
+    final used = siteLastUsed([
+      log(addDays(now, -9), id: 'a'),
+      log(addDays(now, -2), id: 'b'),
+      DoseLog(id: 'c', compoundId: 'o', compoundName: 'BPC-157', dose: 1, injectionSite: '', timestamp: now),
+    ]);
+    expect(used.keys, ['Left thigh']);
+    expect(daysBetween(used['Left thigh']!, now), 2);
+    expect(daysBetween(used['Left thigh']!, now) < siteRestDays, isTrue);
+  });
+
+  test('photo read adds waist and the glow compound week, observations only', () {
+    final photos = [
+      ProgressPhoto(id: '1', takenAt: DateTime(2026, 9, 6), fileName: 'a', fullness: 1, evenness: 0.8),
+      ProgressPhoto(id: '2', takenAt: DateTime(2026, 9, 13), fileName: 'b', fullness: 1, evenness: 0.8),
+    ];
+    final ghk = Compound(
+      id: 'g',
+      name: 'GHK-Cu',
+      nickname: '',
+      category: CompoundCategory.glowAndSkin,
+      startDate: DateTime(2026, 8, 20),
+    );
+    final lines = photoRead(
+      photos,
+      compounds: [reta(), ghk],
+      checkIns: [day(DateTime(2026, 9, 6), waist: 30), day(DateTime(2026, 9, 13), waist: 29.5)],
+    );
+    expect(lines, [
+      'Face fullness: about the same.',
+      'Skin evenness: about the same.',
+      'Waist down 0.5 in.',
+      "That's week 4 on GHK-Cu.",
+    ]);
+    expect(photoRead(photos).last, "No visible change yet. That's normal at week 2.");
   });
 }

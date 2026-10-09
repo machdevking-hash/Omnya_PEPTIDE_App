@@ -321,14 +321,16 @@ class _CompoundEditorState extends State<_CompoundEditor> {
         if (_route == 'Subcutaneous' || _route == 'Intramuscular') ...[
           const SizedBox(height: 18),
           Text('Next site', style: OmnyaTypography.label(color: OmnyaColors.charcoalMuted)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final s in injectionSites)
-                _Chip(label: s, selected: _site == s, onTap: () => setState(() => _site = s)),
-            ],
+          const SizedBox(height: 4),
+          Text(
+            'Sites used in the last $siteRestDays days are resting. Logging moves to the next site in order.',
+            style: OmnyaTypography.bodySmall(),
+          ),
+          const SizedBox(height: 10),
+          _SiteMap(
+            selected: _site,
+            lastUsed: siteLastUsed(context.read<ProtocolRepository>().doseLogs),
+            onSelect: (s) => setState(() => _site = s),
           ),
         ],
         const SizedBox(height: 18),
@@ -476,6 +478,83 @@ class _CompoundEditorState extends State<_CompoundEditor> {
               style: OmnyaTypography.label(color: OmnyaColors.error, weight: FontWeight.w600),
             ),
           ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Spec page 6: a simple body map. Arms, abdomen and thighs, her left on the left,
+/// each with how long it has rested.
+class _SiteMap extends StatelessWidget {
+  final String selected;
+  final Map<String, DateTime> lastUsed;
+  final ValueChanged<String> onSelect;
+  const _SiteMap({required this.selected, required this.lastUsed, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    Widget cell(String site) {
+      final used = lastUsed[site];
+      final days = used == null ? null : daysBetween(used, now);
+      final resting = days != null && days < siteRestDays;
+      final isSelected = site == selected;
+      final detail = switch (days) {
+        null => 'Not used yet',
+        0 => 'Used today',
+        1 => 'Used yesterday',
+        _ => '$days days ago',
+      };
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: isSelected,
+          label: '$site, $detail${resting ? ', resting' : ''}',
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onSelect(site);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? OmnyaColors.plum : (resting ? OmnyaColors.sandMuted : OmnyaColors.sand),
+                borderRadius: BorderRadius.circular(OmnyaRadius.control),
+                border: Border.all(color: isSelected ? OmnyaColors.plum : OmnyaColors.line),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    site,
+                    style: OmnyaTypography.label(
+                      color: isSelected ? OmnyaColors.cream : OmnyaColors.charcoal,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    resting ? '$detail · resting' : detail,
+                    style: isSelected
+                        ? OmnyaTypography.bodySmall(color: OmnyaColors.sandMuted)
+                        : OmnyaTypography.bodySmall(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (final part in const ['arm', 'abdomen', 'thigh']) ...[
+          Row(children: [cell('Left $part'), const SizedBox(width: 8), cell('Right $part')]),
+          if (part != 'thigh') const SizedBox(height: 8),
         ],
       ],
     );

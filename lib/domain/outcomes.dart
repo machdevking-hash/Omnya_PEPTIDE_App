@@ -30,6 +30,7 @@ final metrics = <Metric>[
   Metric('appetite', '', (c) => c.appetiteLevel?.toDouble(), 0.5),
   Metric('sleep', 'h', (c) => c.sleepHours, 0.5),
   Metric('pain', '', (c) => c.pain?.toDouble(), 1),
+  Metric('protein', 'g', (c) => c.proteinG?.toDouble(), 10),
 ];
 
 /// Average of [m] over check-ins from [from] up to, not including, [to].
@@ -220,9 +221,43 @@ WeeklyReport weeklyReport({
   return WeeklyReport(changed, due, watch);
 }
 
+/// Spec page 6, "toned not frail": protein days at her target and how strong workouts felt, 0 to 100.
+class TonedScore {
+  final int score;
+  final List<String> lines;
+  const TonedScore(this.score, this.lines);
+}
+
+/// Null until she has a protein target with a logged day, or a strength rating in the last two weeks.
+TonedScore? tonedScore(List<DailyCheckIn> checkIns, int? targetG, DateTime now) {
+  final from = addDays(dayOf(now), -6);
+  final protein = checkIns.where((c) => c.proteinG != null && !c.date.isBefore(from)).toList();
+  final rated = checkIns.where((c) => c.strength != null).toList()..sort((a, b) => b.date.compareTo(a.date));
+  final strength = rated.isEmpty || daysBetween(rated.first.date, now) > 13 ? null : rated.first.strength!;
+
+  final parts = <double>[];
+  final lines = <String>[];
+  if (targetG != null && protein.isNotEmpty) {
+    final hit = protein.where((c) => c.proteinG! >= targetG).length;
+    parts.add(hit / 7);
+    lines.add('Protein target hit on $hit of the last 7 days.');
+  }
+  if (strength != null) {
+    parts.add((strength - 1) / 4);
+    lines.add('Workouts felt $strength of 5 this week.');
+  }
+  if (parts.isEmpty) return null;
+  return TonedScore((parts.reduce((a, b) => a + b) / parts.length * 100).round(), lines);
+}
+
 /// Spec: week-over-week deltas on a few tracked features, small numbers, no grades.
-/// Compares her two latest photos where a face was found.
-List<String> photoRead(List<ProgressPhoto> photos) {
+/// Compares her two latest photos where a face was found, adds her waist from check-ins
+/// that week, and ties the read to a glow compound she's on. Observations only.
+List<String> photoRead(
+  List<ProgressPhoto> photos, {
+  List<Compound> compounds = const [],
+  List<DailyCheckIn> checkIns = const [],
+}) {
   final scored = photos.where((p) => p.fullness != null).toList()..sort((a, b) => a.takenAt.compareTo(b.takenAt));
   if (scored.length < 2) return const [];
   final before = scored[scored.length - 2];
@@ -244,8 +279,25 @@ List<String> photoRead(List<ProgressPhoto> photos) {
           : 'Skin looks ${even > 0 ? 'more' : 'less'} even, ${even.abs().toStringAsFixed(0)} points.',
     );
   }
+  final waist = metrics.firstWhere((m) => m.name == 'waist');
+  double? waistNear(DateTime t) => averageBetween(checkIns, waist, addDays(dayOf(t), -3), addDays(dayOf(t), 4));
+  final waistBefore = waistNear(before.takenAt);
+  final waistNow = waistNear(now.takenAt);
+  if (waistBefore != null && waistNow != null) {
+    final change = describeChange(waist, waistBefore, waistNow);
+    lines.add(change == null ? 'Waist: about the same.' : '${change[0].toUpperCase()}${change.substring(1)}.');
+  }
+
   if (lines.every((l) => l.contains('about the same'))) {
     lines.add("No visible change yet. That's normal at week $week.");
+  }
+
+  final glow = compounds.where((c) => c.category == CompoundCategory.glowAndSkin && !c.startDate.isAfter(now.takenAt));
+  if (glow.isNotEmpty) {
+    final c = glow.first;
+    lines.add(
+      "That's week ${daysBetween(c.startDate, now.takenAt) ~/ 7 + 1} on ${CompoundDirectory.shortName(c.name)}.",
+    );
   }
   return lines;
 }

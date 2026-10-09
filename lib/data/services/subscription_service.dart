@@ -1,36 +1,44 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'local_storage_service.dart';
+
+enum PurchaseOutcome { success, cancelled, failed }
 
 /// Manages RevenueCat StoreKit subscriptions and Pro entitlements.
 class SubscriptionService extends ChangeNotifier {
   static const entitlementPro = 'pro';
 
-  // Configured via dart-define, falling back to dummy key for local development.
-  static const _appleApiKey = String.fromEnvironment(
-    'REVENUECAT_APPLE_API_KEY',
-    defaultValue: 'appl_mock_placeholder_key',
-  );
+  // Passed with --dart-define=REVENUECAT_APPLE_API_KEY=appl_... on release builds.
+  static const _appleApiKey = String.fromEnvironment('REVENUECAT_APPLE_API_KEY');
 
   final LocalStorageService _storage;
   bool _isPro;
   Offerings? _offerings;
   bool _initialized = false;
   bool _isLoading = false;
+  final _trialEligible = <String>{};
 
-  SubscriptionService({required LocalStorageService storage})
-      : _storage = storage,
-        _isPro = storage.getIsPro();
+  SubscriptionService({required LocalStorageService storage}) : _storage = storage, _isPro = storage.getIsPro();
 
   bool get isPro => _isPro;
   Offerings? get offerings => _offerings;
   bool get isInitialized => _initialized;
   bool get isLoading => _isLoading;
 
+  /// True only when the App Store says she can still get this product's free trial.
+  /// Unknown counts as no, so the paywall never promises a trial she won't get.
+  bool trialEligible(Package? p) =>
+      p != null && p.storeProduct.introductoryPrice != null && _trialEligible.contains(p.storeProduct.identifier);
+
   /// Initializes RevenueCat with Apple API key and listens for customer updates.
   Future<void> init({String? userId}) async {
     if (_initialized) return;
+    if (_appleApiKey.isEmpty) {
+      debugPrint('RevenueCat skipped: build with --dart-define=REVENUECAT_APPLE_API_KEY=appl_...');
+      return;
+    }
 
     try {
       final config = PurchasesConfiguration(_appleApiKey);
@@ -38,15 +46,13 @@ class SubscriptionService extends ChangeNotifier {
         config.appUserID = userId;
       }
       await Purchases.configure(config);
+      _initialized = true;
 
-      Purchases.addCustomerInfoUpdateListener((customerInfo) {
-        _updateEntitlements(customerInfo);
-      });
+      Purchases.addCustomerInfoUpdateListener(_updateEntitlements);
 
       final info = await Purchases.getCustomerInfo();
       _updateEntitlements(info);
       await fetchOfferings();
-      _initialized = true;
     } catch (e) {
       debugPrint('RevenueCat initialization skipped or offline: $e');
     }
@@ -79,8 +85,22 @@ class SubscriptionService extends ChangeNotifier {
 
   /// Loads current offerings and packages configured in RevenueCat dashboard.
   Future<void> fetchOfferings() async {
+    if (!_initialized) return init();
     try {
       _offerings = await Purchases.getOfferings();
+      final products = [for (final p in _offerings?.current?.availablePackages ?? <Package>[]) p.storeProduct];
+      final withTrial = [
+        for (final p in products)
+          if (p.introductoryPrice != null) p.identifier,
+      ];
+      _trialEligible.clear();
+      if (withTrial.isNotEmpty) {
+        final status = await Purchases.checkTrialOrIntroductoryPriceEligibility(withTrial);
+        _trialEligible.addAll([
+          for (final e in status.entries)
+            if (e.value.status == IntroEligibilityStatus.introEligibilityStatusEligible) e.key,
+        ]);
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('RevenueCat fetchOfferings failed: $e');
@@ -88,19 +108,22 @@ class SubscriptionService extends ChangeNotifier {
   }
 
   /// Purchases a selected package (monthly, yearly, lifetime).
-  Future<bool> purchase(Package package) async {
+  Future<PurchaseOutcome> purchase(Package package) async {
     _isLoading = true;
     notifyListeners();
     try {
       final result = await Purchases.purchase(PurchaseParams.package(package));
       _updateEntitlements(result.customerInfo);
-      return _isPro;
-    } on PurchasesErrorCode catch (e) {
+      return _isPro ? PurchaseOutcome.success : PurchaseOutcome.failed;
+    } on PlatformException catch (e) {
+      if (PurchasesErrorHelper.getErrorCode(e) == PurchasesErrorCode.purchaseCancelledError) {
+        return PurchaseOutcome.cancelled;
+      }
       debugPrint('Purchase error: $e');
-      return false;
+      return PurchaseOutcome.failed;
     } catch (e) {
       debugPrint('Purchase error: $e');
-      return false;
+      return PurchaseOutcome.failed;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -109,6 +132,7 @@ class SubscriptionService extends ChangeNotifier {
 
   /// Restores previous purchases according to App Store guidelines.
   Future<bool> restore() async {
+    if (!_initialized) await init();
     _isLoading = true;
     notifyListeners();
     try {

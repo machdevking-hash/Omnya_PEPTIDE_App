@@ -16,6 +16,7 @@ import '../../../data/models/progress_photo.dart';
 import '../../../data/repositories/protocol_repository.dart';
 import '../../../domain/outcomes.dart';
 import '../../../domain/schedule.dart';
+import '../../onboarding/paywall_view.dart';
 import '../progress/progress_card_sheet.dart';
 
 /// Spec page 3: one photo a week, same setup, compared with last week.
@@ -41,7 +42,7 @@ class WeeklyPhotoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<ProtocolRepository>();
-    final read = photoRead(repo.photos);
+    final read = photoRead(repo.photos, compounds: repo.compounds, checkIns: repo.checkIns);
     final now = DateTime.now();
     final thisWeek = repo.photoInWeekOf(now);
     final lastWeek = repo.photoInWeekOf(addDays(now, -7));
@@ -110,11 +111,19 @@ class WeeklyPhotoView extends StatelessWidget {
                     style: OmnyaTypography.bodyMedium(),
                   )
                 else
-                  for (final line in read)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(line, style: OmnyaTypography.bodyLarge(color: OmnyaColors.charcoal)),
+                  ProGate(
+                    message: 'Your read is ready. See it with Pro.',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final line in read)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(line, style: OmnyaTypography.bodyLarge(color: OmnyaColors.charcoal)),
+                          ),
+                      ],
                     ),
+                  ),
               ],
             ),
           ),
@@ -221,7 +230,9 @@ class _CameraScreenState extends State<_CameraScreen> with WidgetsBindingObserve
       if (_cameras.isEmpty) _cameras = await availableCameras();
       if (_cameras.isEmpty) {
         if (mounted) {
-          setState(() => _problem = 'No camera found on this device. You can choose a photo from your library instead.');
+          setState(
+            () => _problem = 'No camera found on this device. You can choose a photo from your library instead.',
+          );
         }
         return;
       }
@@ -238,11 +249,7 @@ class _CameraScreenState extends State<_CameraScreen> with WidgetsBindingObserve
       if (mounted) setState(() {});
       await old?.dispose();
 
-      final controller = CameraController(
-        _cameras[_index],
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
+      final controller = CameraController(_cameras[_index], ResolutionPreset.high, enableAudio: false);
       await controller.initialize();
       if (!mounted) {
         await controller.dispose();

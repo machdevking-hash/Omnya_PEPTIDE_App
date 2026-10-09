@@ -7,6 +7,7 @@ import '../../../core/widgets/omnya_card.dart';
 import '../../../core/widgets/omnya_controls.dart';
 import '../../../data/repositories/protocol_repository.dart';
 import '../../../domain/outcomes.dart';
+import '../../onboarding/paywall_view.dart';
 
 /// Spec: Sunday. What changed, what's due, what to watch.
 class WeeklyReportView extends StatelessWidget {
@@ -51,9 +52,20 @@ class WeeklyReportView extends StatelessWidget {
                 ),
               )
             else ...[
-              _Section('What changed', report.changed, empty: 'Check in on more days to compare weeks.'),
-              _Section('Coming up', report.due, empty: 'Nothing due in the next 7 days.'),
-              _Section('To watch', report.watch, empty: 'Nothing logged to watch this week.'),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(report.headline, style: OmnyaTypography.headline()),
+              ),
+              ProGate(
+                message: 'See your full week with Pro.',
+                child: Column(
+                  children: [
+                    _Section('What changed', report.changed, empty: 'Check in on more days to compare weeks.'),
+                    _Section('Coming up', report.due, empty: 'Nothing due in the next 7 days.'),
+                    _Section('To watch', report.watch, empty: 'Nothing logged to watch this week.'),
+                  ],
+                ),
+              ),
             ],
           ],
         ),

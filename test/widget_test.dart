@@ -133,7 +133,10 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Energy 4 of 5'));
     await tester.tap(find.bySemanticsLabel('Appetite 2 of 5'));
     await tester.pump();
+    // Clear of the floating tab bar, which sits over the bottom of the list.
     await tester.ensureVisible(find.text('Save check-in'));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save check-in'));
     await tester.pumpAndSettle();
     expect(find.text('Energy 4 · Appetite 2'), findsOneWidget);
@@ -154,4 +157,3 @@ void main() {
     await drain(tester);
   });
 }
-

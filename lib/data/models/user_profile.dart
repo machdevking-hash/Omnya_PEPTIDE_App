@@ -16,6 +16,9 @@ class UserProfile {
   final bool remindersOn;
   final int reminderMinutes;
 
+  /// Grams a day she aims for. Null until she sets one.
+  final int? proteinTargetG;
+
   /// Asks for Face ID before the app opens.
   final bool lockWithFaceId;
   final DateTime createdAt;
@@ -31,6 +34,7 @@ class UserProfile {
     this.remindersOn = true,
     this.reminderMinutes = 9 * 60,
     this.lockWithFaceId = false,
+    this.proteinTargetG,
     required this.createdAt,
   });
 
@@ -48,6 +52,7 @@ class UserProfile {
     'remindersOn': remindersOn,
     'reminderMinutes': reminderMinutes,
     'lockWithFaceId': lockWithFaceId,
+    'proteinTargetG': proteinTargetG,
     'createdAt': createdAt.toIso8601String(),
   };
 
@@ -69,6 +74,7 @@ class UserProfile {
     remindersOn: json['remindersOn'] as bool? ?? true,
     reminderMinutes: json['reminderMinutes'] as int? ?? 9 * 60,
     lockWithFaceId: json['lockWithFaceId'] as bool? ?? false,
+    proteinTargetG: json['proteinTargetG'] as int?,
     createdAt: DateTime.parse(json['createdAt'] as String),
   );
 
@@ -77,6 +83,7 @@ class UserProfile {
     bool? remindersOn,
     int? reminderMinutes,
     bool? lockWithFaceId,
+    int? Function()? proteinTargetG,
   }) => UserProfile(
     goals: goals,
     selectedCompounds: selectedCompounds,
@@ -88,6 +95,7 @@ class UserProfile {
     remindersOn: remindersOn ?? this.remindersOn,
     reminderMinutes: reminderMinutes ?? this.reminderMinutes,
     lockWithFaceId: lockWithFaceId ?? this.lockWithFaceId,
+    proteinTargetG: proteinTargetG != null ? proteinTargetG() : this.proteinTargetG,
     createdAt: createdAt,
   );
 }

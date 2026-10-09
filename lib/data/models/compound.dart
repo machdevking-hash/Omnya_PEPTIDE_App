@@ -1,4 +1,5 @@
 import '../../core/constants/compound_directory.dart';
+import 'dose_log.dart';
 
 /// Rotation order for injection sites. A dose moves the compound's next site one step on.
 const injectionSites = ['Left thigh', 'Right thigh', 'Left abdomen', 'Right abdomen', 'Left arm', 'Right arm'];
@@ -6,6 +7,19 @@ const injectionSites = ['Left thigh', 'Right thigh', 'Left abdomen', 'Right abdo
 String siteAfter(String site) {
   final i = injectionSites.indexOf(site);
   return injectionSites[(i + 1) % injectionSites.length];
+}
+
+/// A site used within this many days shows as resting on the body map.
+const siteRestDays = 7;
+
+Map<String, DateTime> siteLastUsed(List<DoseLog> logs) {
+  final out = <String, DateTime>{};
+  for (final l in logs) {
+    if (l.injectionSite.isEmpty) continue;
+    final seen = out[l.injectionSite];
+    if (seen == null || l.timestamp.isAfter(seen)) out[l.injectionSite] = l.timestamp;
+  }
+  return out;
 }
 
 const doseUnits = ['mg', 'mcg', 'IU'];

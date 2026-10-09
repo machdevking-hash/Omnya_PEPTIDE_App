@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -87,6 +88,7 @@ class _OnboardingQuizViewState extends State<OnboardingQuizView> {
       remindersOn: repo.profile?.remindersOn ?? true,
       reminderMinutes: repo.profile?.reminderMinutes ?? 9 * 60,
       lockWithFaceId: repo.profile?.lockWithFaceId ?? false,
+      proteinTargetG: repo.profile?.proteinTargetG,
       createdAt: repo.profile?.createdAt ?? DateTime.now(),
     );
     if (!_isRetake) {
@@ -485,6 +487,27 @@ class _Summary extends StatelessWidget {
                               const SizedBox(height: 6),
                               Text(
                                 'Add your dose and schedule for each from Today or Stack.',
+                                style: OmnyaTypography.bodySmall(color: muted),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      // Spec page 7: the widget is on her home screen before she closes the app.
+                      if (!isRetake && defaultTargetPlatform == TargetPlatform.iOS) ...[
+                        const SizedBox(height: 36),
+                        Rise(
+                          delay: 0.4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Put your next dose on your home screen',
+                                style: OmnyaTypography.label(color: OmnyaColors.cream, weight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Touch and hold your home screen, tap Edit, then Add Widget, and choose Omnya.',
                                 style: OmnyaTypography.bodySmall(color: muted),
                               ),
                             ],

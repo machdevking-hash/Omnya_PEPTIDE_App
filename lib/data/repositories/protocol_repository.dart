@@ -160,6 +160,8 @@ class ProtocolRepository extends ChangeNotifier {
     double? sleepHours,
     int? pain,
     List<String> sideEffects = const [],
+    int? proteinG,
+    int? strength,
     String notes = '',
     bool periodStarted = false,
   }) async {
@@ -175,6 +177,8 @@ class ProtocolRepository extends ChangeNotifier {
       sleepHours: sleepHours,
       pain: pain,
       sideEffects: sideEffects,
+      proteinG: proteinG,
+      strength: strength,
       notes: notes.trim(),
       periodStarted: periodStarted,
     );
@@ -290,6 +294,8 @@ class ProtocolRepository extends ChangeNotifier {
           sleepHours: existing?.sleepHours,
           pain: existing?.pain,
           sideEffects: existing?.sideEffects ?? const [],
+          proteinG: existing?.proteinG,
+          strength: existing?.strength,
           notes: existing?.notes ?? '',
           periodStarted: existing?.periodStarted ?? false,
         ),

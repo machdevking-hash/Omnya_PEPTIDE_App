@@ -16,6 +16,7 @@ import '../../core/widgets/tactile_button.dart';
 import '../../data/models/compound.dart';
 import '../../data/repositories/protocol_repository.dart';
 import '../../data/services/reminder_service.dart';
+import '../../data/services/subscription_service.dart';
 import '../../domain/schedule.dart';
 import '../features/circle/circle_view.dart';
 import '../features/photo_read/weekly_photo_view.dart';
@@ -25,6 +26,7 @@ import '../features/stack/compound_editor_sheet.dart';
 import '../features/stack/stack_view.dart';
 import '../features/today/dose_logging.dart';
 import '../features/today/today_view.dart';
+import '../onboarding/paywall_view.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -80,6 +82,7 @@ class _MainShellState extends State<MainShell> with RouteAware {
           Navigator.push(context, SlidePageRoute(page: const WeeklyPhotoView()));
         case 'progress':
           setState(() => _index = 1);
+          if (!context.read<SubscriptionService>().isPro) openPaywall(context);
         default:
           setState(() => _index = 0);
       }
@@ -156,11 +159,7 @@ class _MainShellState extends State<MainShell> with RouteAware {
           excludeSemantics: true,
           child: CNButton.icon(
             key: ValueKey(icon),
-            imageAsset: CNImageAsset(
-              assetPath,
-              size: 26,
-              color: color,
-            ),
+            imageAsset: CNImageAsset(assetPath, size: 26, color: color),
             onPressed: onTap,
             config: CNButtonConfig(style: CNButtonStyle.glass, width: size, minHeight: size),
           ),
@@ -369,9 +368,10 @@ class _FlutterGlassTabButtonState extends State<_FlutterGlassTabButton> with Sin
     duration: const Duration(milliseconds: 100),
     reverseDuration: const Duration(milliseconds: 140),
   );
-  late final Animation<double> _scale = Tween<double>(begin: 1.0, end: 0.94).animate(
-    CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic),
-  );
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 0.94,
+  ).animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
 
   @override
   void dispose() {
@@ -440,4 +440,3 @@ class _FlutterGlassTabButtonState extends State<_FlutterGlassTabButton> with Sin
     );
   }
 }
-

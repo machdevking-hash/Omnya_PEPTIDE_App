@@ -75,6 +75,7 @@ class CloudService {
         'day_90_goal': profile.day90GoalText,
         'photo_tracking_type': profile.photoTrackingType,
         'sunday_photo_prompt': profile.sundayPhotoPromptEnabled,
+        'protein_target_g': profile.proteinTargetG,
         'updated_at': now,
       });
     }
@@ -137,6 +138,8 @@ class CloudService {
             'sleep_hours': c.sleepHours,
             'pain': c.pain,
             'side_effects': c.sideEffects,
+            'protein_g': c.proteinG,
+            'strength': c.strength,
             'notes': c.notes,
             'period_started': c.periodStarted,
           },
